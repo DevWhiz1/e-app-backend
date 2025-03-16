@@ -3,16 +3,16 @@ var express = require("express");
 var path = require("path");
 const cors = require("cors");
 var logger = require("morgan");
-const db = require("./db/db");
+const db = require("./db/db.js");
 
-var indexRouter = require("./routes/index.router");
-var usersRouter = require("./routes/users.router");
+var indexRouter = require("./routes/index.router.js");
+var usersRouter = require("./routes/users.router.js");
 var authRouter = require("./routes/auth.router.js");
 var cartRouter=require("./routes/cart.router.js");
 var orderController=require("./routes/orders.router.js");
 var productController=require("./routes/products.router.js");
 var designController=require("./routes/customDesign.router.js");
-
+const port=process.env.PORT || 3000;
 require("dotenv").config();
 var app = express();
 db();
@@ -21,9 +21,6 @@ app.use(cors());
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
-
-// app.use(express.static(path.join(__dirname, "public")));
-
 app.use('/uploads', express.static(path.join(__dirname, "uploads")));
 
 app.use("/", indexRouter);
@@ -48,7 +45,7 @@ app.use(function (err, req, res, next) {
   // render the error page
   res.status(err.status || 500).send({ error: err.message });
 });
-app.listen(3000, () => {
+app.listen(port, () => {
   console.log("Server started on port 3000");
 });
 
