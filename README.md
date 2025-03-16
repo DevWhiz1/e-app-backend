@@ -1,1 +1,1 @@
-# e-app-backend
+# ecommerce-app-backend
