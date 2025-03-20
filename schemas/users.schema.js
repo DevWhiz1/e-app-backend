@@ -89,6 +89,10 @@ const userSchema = new mongoose.Schema({
   createdBy: {
     type: String,
   },
+  isAccountActive: {
+    type: Boolean,
+    default: false
+  },
   updatedBy: {
     type: String,
   },

@@ -182,41 +182,60 @@ require("dotenv").config();
 authController.register = async (req, res) => {
   try {
     const { firstName, lastName, email, password, role } = req.body;
-
+    console.log(req.body);
+    
     if (!password) {
       return res.status(400).json({ status: 400, message: "Password is required" });
     }
-
+    
     const isEmailExists = await usersSchema.findOne({ email: email });
     if (isEmailExists) {
       return res.status(401).json({ status: 401, message: "Email already exists" });
     }
-
+    
     const token = await jwt.sign({ email: email }, config.secret);
     const hashedPassword = await bcrypt.hash(password, 10);
-
+    
     const otp = "1234"; // ✅ Static OTP for testing
-
-    let user = new usersSchema({
-      firstName,
-      lastName,
-      email,
-      password: hashedPassword,
-      accessToken: token,
-      role,
-      otp, // ✅ Save static OTP
-    });
-
+    
+    let user;
+    console.log("Role received:", role);
+    
+    if(role && role.toLowerCase() === 'seller'){
+      user = new usersSchema({
+        firstName,
+        lastName,
+        email,
+        password: hashedPassword,
+        accessToken: token,
+        role,
+        otp, // ✅ Save static OTP
+        isAccountActive: false
+      });
+    }
+    else{
+      user = new usersSchema({
+        firstName,
+        lastName,
+        email,
+        password: hashedPassword,
+        accessToken: token,
+        role,
+        otp, // ✅ Save static OTP
+        isAccountActive: true
+      });
+    }
+    
     await user.save();
-
+    
     await emailService.sendMail(
       user.email,
       "E-Commerce Verification",
       `Your OTP for E-Commerce Verification is: ${otp}`
     );
-
+    
     user.password = undefined;
-
+    
     return res.status(201).json({
       status: 201,
       message: "User registered successfully. OTP sent successfully.",
@@ -227,7 +246,6 @@ authController.register = async (req, res) => {
     res.status(500).json({ status: 500, message: "Something went wrong" });
   }
 };
-
 authController.login = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -305,8 +323,8 @@ authController.sendOtp = async (req, res) => {
 
     await emailService.sendMail(
       user.email,
-      "SNIPER Verification",
-      `Your OTP for Sniper Verification is: ${user.otp}`
+      "Otp Verification",
+      `Your OTP is: ${user.otp}`
     );
 
     return res.status(200).json({ status: 200, message: "OTP sent successfully." });

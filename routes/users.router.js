@@ -8,6 +8,8 @@ router.get("/get-single-user/:id", userController.getSingleUser);
 router.put("/update-password/:id", userController.updatePassword);
 router.get("/get-all-users", userController.getAllUsers);
 router.get("/get-all-suppliers", userController.getAllSuppliers);
+router.post("/reject-user/:id", userController.rejectSupplier);
+router.post("/approve-user/:id", userController.approveSupplier);
 router.put(
     "/update-image/:id",
     upload.single('picture'),

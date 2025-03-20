@@ -32,6 +32,42 @@ userController.getAllSuppliers = async (req, res) => {
   }
 };
 
+userController.rejectSupplier = async(req, res) => {
+  try{
+    const id = req.params.id;
+    const updateUser = await usersSchema.findByIdAndUpdate(
+      { _id: new mongoose.Types.ObjectId(id) },
+      { $set: { isAccountActive: false } },
+      { new: true } 
+    );
+    if (!updateUser) {
+      return res.status(400).json({ message: "Error in rejecting supplier" });
+    }
+    res.status(200).json({ message: "Supplier rejected successfully", user: updateUser });
+  }catch(error){
+    console.error("Something went wrong:", error);
+    res.status(500).json({ status: 500, message: "Something went wrong" });
+  }
+};
+
+userController.approveSupplier = async(req, res) => {
+  try{
+    const id = req.params.id;
+    const updateUser = await usersSchema.findByIdAndUpdate(
+      { _id: new mongoose.Types.ObjectId(id) },
+      { $set: { isAccountActive: true } },
+      { new: true } 
+    );
+    if (!updateUser) {
+      return res.status(400).json({ message: "Error in verifying supplier" });
+    }
+    res.status(200).json({ message: "Supplier verified successfully", user: updateUser });
+  }catch(error){
+    console.error("Something went wrong:", error);
+    res.status(500).json({ status: 500, message: "Something went wrong" });
+  }
+};
+
 userController.updateUser = async (req, res) => {
   try {
     const body = req.body;
