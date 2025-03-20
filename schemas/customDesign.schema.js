@@ -8,26 +8,54 @@ const customDesignSchema = new mongoose.Schema(
       ref: "User",
       required: true
     },
-
     supplierId: {
       type: Schema.Types.ObjectId,
       ref: "Supplier",
       required: true,
     },
-    productId: {
-      type: Schema.Types.ObjectId,
-      ref: "Products",
-      required: true,
-    },
-    imagePath: { type: String, required: true },
+    products: [
+      {
+        productId: {
+          type: Schema.Types.ObjectId,
+          ref: "Product",
+          required: true,
+        },
+        quantity: {
+          type: Number,
+          required: true,
+          default: 1
+        },
+        color: {
+          type: String,
+          default: null
+        },
+        size: {
+          type: String,
+          default: null
+        },
+        quality: {
+          type: String,
+          default: null
+        },
+        customDesignPath:{
+          type: String,
+        },
+        customDesignDescription:{
+          type: String,
+        },
+      },
+    ],
     userPhoneNumber: { type: String, },
     email: { type: String, },
-    designDescription: { type: String, },
     status: {
       type: String,
       enum: ["pending", "approved", "rejected", "completed"],
       default: "pending",
 
+    },
+    totalAmount: {
+      type: Number,
+      required: true,
     },
   },
   { timestamps: true }

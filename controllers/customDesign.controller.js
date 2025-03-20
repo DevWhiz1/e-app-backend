@@ -6,17 +6,15 @@ let customDesignController = {};
 customDesignController.createDesign = async (req, res) => {
   try {
     const body = req.body;
-    if (req.files) {
-      body.images = req?.files?.map(file => file.path);
-  }
+    body.image = req.file?.path;  
     const createDesign = await customDesign.create(body);
     if (!createDesign) {
-      return res.status(400).json({ message: "Error in creating design" });
+      return res.status(400).json({ message: "Error in creating Design" });
     }
 
-    res.status(201).json({ message: "Design created successfully", design: createDesign });
+    res.status(201).json({ message: "Product created successfully", product: createDesign });
   } catch (error) {
-    console.error("Error creating design:", error);
+    console.error("Error creating product:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };
