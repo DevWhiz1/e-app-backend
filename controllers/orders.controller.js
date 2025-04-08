@@ -1,6 +1,8 @@
 const { default: mongoose } = require("mongoose");
 const Order = require("../schemas/orders.schema");
 const User = require("../schemas/users.schema");
+const Product = require("../schemas/products.schema");
+const Cart = require("../schemas/cart.schema");
 
 const orderController = {};
 
@@ -39,34 +41,39 @@ orderController.getOrdersBySupplier = async (req, res) => {
     });
     
     if (!orders || orders.length === 0) {
-      return res.status(200).json({ message: "No orders found for this supplier", orders: [] });
+      return res.status(200).json({ message: "No orders found", orders: [] });
     }
-    
-    const userIds = [...new Set(orders.map(order => order.userId))];
-    
-    const users = await User.find({ 
-      _id: { $in: userIds.map(id => new mongoose.Types.ObjectId(id)) }
-    });
-    
-    const userMap = {};
-    users.forEach(user => {
-      userMap[user._id.toString()] = {
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        address: user.address
-      };
-    });
-    
-    const ordersWithUserInfo = orders.map(order => {
-      const orderObj = order.toObject();
-      orderObj.userInfo = userMap[order.userId.toString()] || null;
-      return orderObj;
-    });
-    
-    res.status(200).json({ 
-      message: "Orders retrieved successfully", 
-      orders: ordersWithUserInfo 
+
+    const enrichedOrders = await Promise.all(
+      orders.map(async (order) => {
+        // Get user details
+        const user = await User.findById(order.userId).lean();
+
+        // Get cart details
+        const cart = await Cart.findById(order.cartId).lean();
+
+        let products = [];
+
+        if (cart && cart.products && cart.products.length > 0) {
+          // Extract productIds
+          const productIds = cart.products.map(p => p.productId);
+
+          // Get product details
+          products = await Product.find({ _id: { $in: productIds } }).lean();
+        }
+
+        return {
+          ...order.toObject(),
+          user,
+          cart,
+          products,
+        };
+      })
+    );
+
+    res.status(200).json({
+      message: "Orders retrieved successfully",
+      orders: enrichedOrders,
     });
     
   } catch (error) {
@@ -76,60 +83,62 @@ orderController.getOrdersBySupplier = async (req, res) => {
 };
 
 
-orderController.getOrderByUser = async (req, res) => {
-  try {
-    const userId = req.params.id;
-    
-    const orders = await Order.find({
-      userId: new mongoose.Types.ObjectId(userId),
-      orderStatus: 'Processing'
-    });
-    
-    if (!orders || orders.length === 0) {
-      return res.status(200).json({ message: "No orders found for this supplier", orders: [] });
-    }
-    
-    const userIds = [...new Set(orders.map(order => order.userId))];
-    
-    const users = await User.find({ 
-      _id: { $in: userIds.map(id => new mongoose.Types.ObjectId(id)) }
-    });
-    
-    const userMap = {};
-    users.forEach(user => {
-      userMap[user._id.toString()] = {
-        name: user.name,
-        email: user.email,
-        phone: user.phone,
-        address: user.address
-      };
-    });
-    
-    const ordersWithUserInfo = orders.map(order => {
-      const orderObj = order.toObject();
-      orderObj.userInfo = userMap[order.userId.toString()] || null;
-      return orderObj;
-    });
-    
-    res.status(200).json({ 
-      message: "Orders retrieved successfully", 
-      orders: ordersWithUserInfo 
-    });
-    
-  } catch (error) {
-    console.error("Error fetching orders:", error);
-    res.status(500).json({ message: "Internal server error" });
-  }
-};
-
-  orderController.getAllOrders = async (req, res) => {
+  orderController.getOrderByUser = async (req, res) => {
     try {
-      const orders = await Order.find({})
+      const userId = req.params.id;
+      const orders = await Order.find({ userId })
+  
       if (!orders || orders.length === 0) {
-        return res.status(200).json({ message: "No orders found", orders: [] });
+        return res.status(404).json({ message: "No orders found for this user" });
       }
 
       res.status(200).json({ message: "Orders retrieved successfully", orders });
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  };
+
+  orderController.getAllOrders = async (req, res) => {
+    try {
+      const orders = await Order.find({});
+  
+      if (!orders || orders.length === 0) {
+        return res.status(200).json({ message: "No orders found", orders: [] });
+      }
+  
+      const enrichedOrders = await Promise.all(
+        orders.map(async (order) => {
+          // Get user details
+          const user = await User.findById(order.userId).lean();
+  
+          // Get cart details
+          const cart = await Cart.findById(order.cartId).lean();
+  
+          let products = [];
+  
+          if (cart && cart.products && cart.products.length > 0) {
+            // Extract productIds
+            const productIds = cart.products.map(p => p.productId);
+  
+            // Get product details
+            products = await Product.find({ _id: { $in: productIds } }).lean();
+          }
+  
+          return {
+            ...order.toObject(),
+            user,
+            cart,
+            products,
+          };
+        })
+      );
+  
+      res.status(200).json({
+        message: "Orders retrieved successfully",
+        orders: enrichedOrders,
+      });
+  
     } catch (error) {
       console.error("Error fetching orders:", error);
       res.status(500).json({ message: "Internal server error" });
@@ -166,34 +175,39 @@ orderController.getOrderByUser = async (req, res) => {
       });      
       
       if (!orders || orders.length === 0) {
-        return res.status(200).json({ message: "No orders found for this supplier", orders: [] });
+        return res.status(200).json({ message: "No orders found", orders: [] });
       }
-      
-      const userIds = [...new Set(orders.map(order => order.userId))];
-      
-      const users = await User.find({ 
-        _id: { $in: userIds.map(id => new mongoose.Types.ObjectId(id)) }
-      });
-      
-      const userMap = {};
-      users.forEach(user => {
-        userMap[user._id.toString()] = {
-          name: user.name,
-          email: user.email,
-          phone: user.phone,
-          address: user.address
-        };
-      });
-      
-      const ordersWithUserInfo = orders.map(order => {
-        const orderObj = order.toObject();
-        orderObj.userInfo = userMap[order.userId.toString()] || null;
-        return orderObj;
-      });
-      
-      res.status(200).json({ 
-        message: "Orders retrieved successfully", 
-        orders: ordersWithUserInfo 
+  
+      const enrichedOrders = await Promise.all(
+        orders.map(async (order) => {
+          // Get user details
+          const user = await User.findById(order.userId).lean();
+  
+          // Get cart details
+          const cart = await Cart.findById(order.cartId).lean();
+  
+          let products = [];
+  
+          if (cart && cart.products && cart.products.length > 0) {
+            // Extract productIds
+            const productIds = cart.products.map(p => p.productId);
+  
+            // Get product details
+            products = await Product.find({ _id: { $in: productIds } }).lean();
+          }
+  
+          return {
+            ...order.toObject(),
+            user,
+            cart,
+            products,
+          };
+        })
+      );
+  
+      res.status(200).json({
+        message: "Orders retrieved successfully",
+        orders: enrichedOrders,
       });
       
     } catch (error) {
