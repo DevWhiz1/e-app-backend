@@ -6,6 +6,7 @@ router.post("/save", orderController.createOrder);
 router.get("/supplier/:id", orderController.getOrdersBySupplier);
 router.get("/supplier-past/:id", orderController.getPastOrdersBySupplier);
 router.put("/update-status/:id", orderController.updateStatus);
+router.put("/update-payment-status/:id", orderController.updatePaymentStatus);
 router.get("/get-all-orders", orderController.getAllOrders);
 router.get("/get-order-by-userid/:id", orderController.getOrderByUser);
 

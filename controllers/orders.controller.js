@@ -205,6 +205,26 @@ orderController.getOrdersBySupplier = async (req, res) => {
     res.json({ success: true, message: `Order marked as ${orderStatus}`, order });
   }
 
+  orderController.updatePaymentStatus = async(req, res) => {
+    const { paymentStatus }  = req.body;
+    const id  = req.params.id;
+    console.log(id);
+    console.log(paymentStatus)
+    if (!["Failed", "Paid"].includes(paymentStatus)) {
+      return res.status(400).json({ success: false, message: "Invalid status" });
+    }
+
+    const order = await Order.findByIdAndUpdate(
+     { _id: new mongoose.Types.ObjectId(id) },
+       { paymentStatus }, 
+       { new: true });
+    if (!order) {
+      return res.status(404).json({ success: false, message: "Order not found" });
+    }
+
+    res.json({ success: true, message: `Order marked as ${paymentStatus}`, order });
+  }
+
   orderController.getPastOrdersBySupplier = async (req, res) => {
     try {
       const supplierId = req.params.id;
