@@ -83,6 +83,21 @@ orderController.getOrdersBySupplier = async (req, res) => {
 };
 
 
+  // orderController.getOrderByUser = async (req, res) => {
+  //   try {
+  //     const userId = req.params.id;
+  //     const orders = await Order.find({ userId })
+  
+  //     if (!orders || orders.length === 0) {
+  //       return res.status(404).json({ message: "No orders found for this user" });
+  //     }
+
+  //     res.status(200).json({ message: "Orders retrieved successfully", orders });
+  //   } catch (error) {
+  //     console.error("Error fetching orders:", error);
+  //     res.status(500).json({ message: "Internal server error" });
+  //   }
+  // };
   orderController.getOrderByUser = async (req, res) => {
     try {
       const userId = req.params.id;
@@ -92,12 +107,37 @@ orderController.getOrdersBySupplier = async (req, res) => {
         return res.status(404).json({ message: "No orders found for this user" });
       }
 
-      res.status(200).json({ message: "Orders retrieved successfully", orders });
+      const enrichedOrders = await Promise.all(
+        orders.map(async (order) => {
+          // Get cart details
+          const cart = await Cart.findById(order.cartId).lean();
+
+          let products = [];
+
+          if (cart && cart.products && cart.products.length > 0) {
+            // Extract productIds
+            const productIds = cart.products.map(p => p.productId);
+
+            // Get product details
+            products = await Product.find({ _id: { $in: productIds } }).lean();
+          }
+
+          return {
+            ...order.toObject(),
+            cart,
+          }; 
+        }
+      ));
+      res.status(200).json({
+        message: "Orders retrieved successfully",
+        orders: enrichedOrders,
+      });
     } catch (error) {
       console.error("Error fetching orders:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   };
+
 
   orderController.getAllOrders = async (req, res) => {
     try {
