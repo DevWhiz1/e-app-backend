@@ -7,9 +7,15 @@ const storage = multer.diskStorage({
     cb(null, 'uploads/'); // Specify the folder to save images
   },
   filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9); // Generate a unique filename with timestamp and random number
-    cb(null, uniqueSuffix + path.extname(file.originalname)); // Append unique identifier to the original file extension
-  }
+     // Extract color from the original filename (format: color_filename.ext)
+     let colorPrefix = '';
+     const nameParts = file.originalname.split('_');
+     if (nameParts.length > 1) {
+       colorPrefix = nameParts[0] + '_';
+     }
+     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+     cb(null, colorPrefix + uniqueSuffix + path.extname(file.originalname));
+      }
 });
 
 // Initialize multer with storage engine and file filter

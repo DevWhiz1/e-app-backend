@@ -86,6 +86,18 @@ const userSchema = new mongoose.Schema({
     type: Boolean,
     default: true
   },
+  cnic: {
+    type: String,
+  },
+  businessCategory:{
+    type: String,
+  },
+  businessName:{
+    type: String,
+  },
+  website:{
+    type: String,
+  },
   createdBy: {
     type: String,
   },
