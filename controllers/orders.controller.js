@@ -37,7 +37,10 @@ orderController.getOrdersBySupplier = async (req, res) => {
     
     const orders = await Order.find({
       supplierId: new mongoose.Types.ObjectId(supplierId),
-      orderStatus: 'Processing'
+      $or: [
+        { orderStatus: 'Processing' },
+        { paymentStatus: 'Pending' },
+      ],
     });
     
     if (!orders || orders.length === 0) {
@@ -231,7 +234,8 @@ orderController.getOrdersBySupplier = async (req, res) => {
       
       const orders = await Order.find({
         supplierId: new mongoose.Types.ObjectId(supplierId),
-        orderStatus: { $in: ['Delivered', 'Rejected'] }
+        orderStatus: { $in: ['Delivered', 'Rejected'] },
+        paymentStatus: { $in: ['Paid', 'Failed'] },
       });      
       
       if (!orders || orders.length === 0) {
