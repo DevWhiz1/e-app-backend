@@ -22,15 +22,16 @@ var app = express();
 db();
 
 // // CORS Configuration
-// const allowedOrigins = [
-//   "http://localhost:8081", 
-// ];
+const allowedOrigins = [
+  "http://localhost:8081", 
+];
 
 app.use(
   cors({
-    origin: "*", // Allow all origins (for development only)
-    methods: "GET,POST,PUT,DELETE",
-    allowedHeaders: "Content-Type,Authorization",
+    // origin: "*", // Allow all origins (for development only)
+    // methods: "GET,POST,PUT,DELETE",
+    // allowedHeaders: "Content-Type,Authorization",
+    allowedOrigins: allowedOrigins,
   })
 );
 

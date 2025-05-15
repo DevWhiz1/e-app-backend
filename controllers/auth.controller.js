@@ -196,7 +196,7 @@ authController.register = async (req, res) => {
     const token = await jwt.sign({ email: email }, config.secret);
     const hashedPassword = await bcrypt.hash(password, 10);
     
-    const otp = "1234"; // ✅ Static OTP for testing
+    const otp = "1234"; 
     
     let user;
     console.log("Role received:", role);
@@ -209,7 +209,7 @@ authController.register = async (req, res) => {
         password: hashedPassword,
         accessToken: token,
         role,
-        otp, // ✅ Save static OTP
+        otp, 
         isAccountActive: false
       });
     }
@@ -221,7 +221,7 @@ authController.register = async (req, res) => {
         password: hashedPassword,
         accessToken: token,
         role,
-        otp, // ✅ Save static OTP
+        otp,
         isAccountActive: true
       });
     }
@@ -261,7 +261,7 @@ authController.login = async (req, res) => {
     }
 
     if (!user.otpVerified) {
-      user.otp = "1234"; // ✅ Assign static OTP
+      user.otp = "1234"; 
       await user.save();
 
       await emailService.sendMail(
@@ -318,7 +318,7 @@ authController.sendOtp = async (req, res) => {
       return res.status(404).json({ status: 404, message: "User not found" });
     }
 
-    user.otp = "1234"; // ✅ Static OTP for testing
+    user.otp = "1234"; 
     await user.save();
 
     await emailService.sendMail(
